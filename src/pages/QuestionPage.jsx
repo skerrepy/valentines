@@ -4,12 +4,16 @@ import { Button } from '../components/ui/button'
 
 const flowers = ['🌸', '🌺', '🌻', '🌷', '🌹', '💐', '🌼', '🏵️', '🌿', '🍀']
 
+const questionText = "Tamara would you be my valentine's date ?"
+
 export default function QuestionPage() {
   const navigate = useNavigate()
   const noButtonRef = useRef(null)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [flowersPositions, setFlowersPositions] = useState([])
   const [showPopover, setShowPopover] = useState(false)
+  const [displayedText, setDisplayedText] = useState('')
+  const [cursorVisible, setCursorVisible] = useState(true)
 
   useEffect(() => {
     // Generate random flower positions
@@ -22,6 +26,38 @@ export default function QuestionPage() {
     }))
     setFlowersPositions(positions)
   }, [])
+
+  // Typewriter effect
+  useEffect(() => {
+    if (displayedText.length < questionText.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText(questionText.slice(0, displayedText.length + 1))
+      }, 100) // Typing speed - adjust for faster/slower
+      return () => clearTimeout(timeout)
+    } else {
+      // Hide cursor after typing is complete
+      const cursorTimeout = setTimeout(() => {
+        setCursorVisible(false)
+      }, 1000)
+      return () => clearTimeout(cursorTimeout)
+    }
+  }, [displayedText])
+
+  // Blinking cursor effect - only while typing
+  useEffect(() => {
+    const isTyping = displayedText.length < questionText.length
+    if (!isTyping) {
+      // Hide cursor after a brief delay when typing is complete
+      const hideTimeout = setTimeout(() => setCursorVisible(false), 1000)
+      return () => clearTimeout(hideTimeout)
+    }
+    
+    // Blink cursor while typing
+    const interval = setInterval(() => {
+      setCursorVisible(prev => !prev)
+    }, 530)
+    return () => clearInterval(interval)
+  }, [displayedText.length])
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -91,8 +127,9 @@ export default function QuestionPage() {
 
       {/* Main card */}
       <div className="bg-white rounded-3xl shadow-2xl p-12 md:p-16 max-w-2xl w-full relative z-10 animate-fadeIn">
-        <h1 className="text-4xl md:text-6xl font-bold text-center text-green-800 mb-12 animate-slideDown">
-          Tamara would you be my valentine's date ?
+        <h1 className="text-4xl md:text-6xl font-bold text-center text-green-800 mb-12">
+          {displayedText}
+          {cursorVisible && <span className="animate-blink">|</span>}
         </h1>
         
         <div className="flex gap-6 justify-center items-center flex-wrap">
@@ -171,8 +208,17 @@ export default function QuestionPage() {
           animation: fadeIn 1s ease-out;
         }
 
-        .animate-slideDown {
-          animation: slideDown 1s ease-out 0.3s both;
+        @keyframes blink {
+          0%, 50% {
+            opacity: 1;
+          }
+          51%, 100% {
+            opacity: 0;
+          }
+        }
+
+        .animate-blink {
+          animation: blink 1s infinite;
         }
 
         .animate-pulse-slow {
